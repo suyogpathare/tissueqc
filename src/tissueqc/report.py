@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .io import load_image
+from .io import load_image, read_pixel_size, tile_size_from_microns
 from .manifest import build_manifest, sha256_file
 from .metrics import saturation_fraction, signal_to_background, tile_uniformity_cv, tissue_mask
 
@@ -20,16 +20,21 @@ def run_qc(
     background_path: str | Path | None = None,
     channel_axis: int = 0,
     channel_names: list[str] | None = None,
+    tile_size_um: float | None = None,
 ) -> dict:
     """Compute every metric for every channel of `image_path`.
 
     thresholds maps channel index -> manual mask threshold; channels not
     listed use Otsu. background_path is an optional control image with the
-    same number of channels, used for signal-to-background.
+    same number of channels, used for signal-to-background. tile_size_um,
+    when given, overrides tile_size using the OME pixel size.
     """
     thresholds = thresholds or {}
     image = load_image(image_path, channel_axis=channel_axis)
     n_ch = image.shape[0]
+    pixel_size = read_pixel_size(image_path)
+    if tile_size_um is not None:
+        tile_size = tile_size_from_microns(tile_size_um, pixel_size)
 
     background = None
     if background_path is not None:
@@ -67,11 +72,13 @@ def run_qc(
         "thresholds": {str(k): v for k, v in sorted(thresholds.items())},
         "saturation_value": saturation_value,
         "tile_size": tile_size,
+        "tile_size_um": tile_size_um,
         "min_tissue_fraction": min_tissue_fraction,
         "background_image": Path(background_path).name if background_path else None,
         "channel_axis": channel_axis,
     }
     manifest = build_manifest(image_path, image, parameters)
+    manifest["input"]["pixel_size"] = pixel_size
     if background_path is not None:
         manifest["background_input"] = {
             "file_name": Path(background_path).name,

@@ -43,6 +43,58 @@ def as_cyx(arr: np.ndarray, channel_axis: int = 0) -> np.ndarray:
     )
 
 
+_MICRON_UNITS = {"µm", "um", "micron", "μm"}
+
+
+def read_pixel_size(path: str | Path) -> dict | None:
+    """Physical pixel size from OME-XML metadata, or None if absent.
+
+    Returns {"x": float, "y": float, "unit": str} using the Pixels
+    element's PhysicalSizeX/Y and PhysicalSizeXUnit (OME's default unit is
+    µm when the attribute is omitted).
+
+    Limitations
+    -----------
+    - Only OME-TIFF metadata is read. ImageJ or plain-TIFF resolution tags
+      are ignored, so many non-OME TIFFs return None.
+    - The value is whatever the writing software stored; it is not checked
+      against the instrument.
+    """
+    import xml.etree.ElementTree as ET
+
+    with tifffile.TiffFile(str(path)) as tif:
+        xml = tif.ome_metadata
+    if not xml:
+        return None
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return None
+    pixels = next((el for el in root.iter() if el.tag.endswith("}Pixels") or el.tag == "Pixels"), None)
+    if pixels is None or "PhysicalSizeX" not in pixels.attrib:
+        return None
+    x = float(pixels.attrib["PhysicalSizeX"])
+    y = float(pixels.attrib.get("PhysicalSizeY", x))
+    unit = pixels.attrib.get("PhysicalSizeXUnit", "µm")
+    return {"x": x, "y": y, "unit": unit}
+
+
+def tile_size_from_microns(tile_um: float, pixel_size: dict | None) -> int:
+    """Convert a tile edge in µm to whole pixels: round(tile_um / pixel_x).
+
+    Raises ValueError when the pixel size is unknown, not in µm, or the
+    pixels are not square (x and y differ by more than 1%).
+    """
+    if pixel_size is None:
+        raise ValueError("--tile-size-um needs a pixel size, but the image has no OME PhysicalSizeX")
+    if pixel_size["unit"] not in _MICRON_UNITS:
+        raise ValueError(f"pixel size unit is {pixel_size['unit']!r}, expected µm")
+    x, y = pixel_size["x"], pixel_size["y"]
+    if abs(x - y) > 0.01 * x:
+        raise ValueError(f"non-square pixels ({x} x {y} µm) are not supported for --tile-size-um")
+    return max(1, round(tile_um / x))
+
+
 def nominal_bit_depth(dtype: np.dtype) -> int:
     """Bits per pixel of the storage container (e.g. 16 for uint16).
 

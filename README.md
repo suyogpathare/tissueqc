@@ -1,5 +1,7 @@
 # TissueQC
 
+[![tests](https://github.com/suyogpathare/tissueqc/actions/workflows/tests.yml/badge.svg)](https://github.com/suyogpathare/tissueqc/actions/workflows/tests.yml)
+
 Quantitative quality control for multiplex fluorescence tissue images.
 
 > **Status: v0.1 pre-alpha.** The metrics below are first drafts. Their
@@ -42,7 +44,8 @@ hidden `.pth` files. Fix with `chflags -R nohidden .venv`.
 
 Useful options: `--threshold 0=500` (manual mask threshold for channel 0;
 repeatable), `--saturation-value 4095` (for 12-bit data stored as 16-bit),
-`--tile-size 256`, `--background-image control.tif`,
+`--tile-size 256` (pixels) or `--tile-size-um 50` (microns, read from the
+OME-TIFF pixel size), `--background-image control.tif`,
 `--channel-names DAPI,CD3,CD8`. Run `tissueqc --help` for all of them.
 
 ## Tests

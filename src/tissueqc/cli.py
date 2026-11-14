@@ -31,6 +31,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--saturation-value", type=float, default=None,
                    help="pixel value treated as saturated (default: dtype max; required for float images)")
     p.add_argument("--tile-size", type=int, default=256, help="uniformity tile edge in pixels (default 256)")
+    p.add_argument("--tile-size-um", type=float, default=None,
+                   help="uniformity tile edge in µm; overrides --tile-size using the OME pixel size")
     p.add_argument("--min-tissue-fraction", type=float, default=0.5,
                    help="minimum tissue fraction for a tile to count (default 0.5)")
     p.add_argument("--background-image", type=Path, default=None,
@@ -58,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
             background_path=args.background_image,
             channel_axis=args.channel_axis,
             channel_names=names,
+            tile_size_um=args.tile_size_um,
         )
     except ValueError as e:
         print(f"tissueqc: {e}", file=sys.stderr)

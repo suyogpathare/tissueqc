@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use TissueQC, please cite it as below."
+title: "TissueQC: quantitative quality control for multiplex fluorescence tissue images"
+type: software
+authors:
+  - family-names: Pathare
+    given-names: Suyog
+version: 0.1.0.dev0
+license: MIT
+repository-code: "https://github.com/suyogpathare/tissueqc"
+keywords:
+  - spatial biology
+  - multiplex immunofluorescence
+  - quality control
+  - microscopy
