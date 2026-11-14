@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+
+# Image data is never committed. Keep downloaded public datasets here.
+data/
+*.tif
+*.tiff
+*.ome.tif
+*.ome.tiff
+!tests/fixtures/*.tif
+
+# QC outputs
+reports/
+*.qc.json
