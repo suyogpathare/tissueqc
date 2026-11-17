@@ -5,6 +5,7 @@ type: software
 authors:
   - family-names: Pathare
     given-names: Suyog
+    orcid: "https://orcid.org/0000-0001-8856-3796"
 version: 0.1.0.dev0
 license: MIT
 repository-code: "https://github.com/suyogpathare/tissueqc"
